@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ratio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     FRONT FACE  –  the main calculator view
+     ════════════════════════════════════════════ -->
+<div id="front">
+
+  <!-- Preset selector row -->
+  <div id="preset-row">
+    <label id="preset-label">Preset</label>
+    <select id="presets">
+      <option value="presets">Presets…</option>
+      <option value="320x240">320 × 240  (4:3 QVGA)</option>
+      <option value="640x480">640 × 480  (4:3 VGA)</option>
+      <option value="800x600">800 × 600  (4:3 SVGA)</option>
+      <option value="1024x768">1024 × 768  (4:3 XGA)</option>
+      <option value="1280x720">1280 × 720  (16:9 HD)</option>
+      <option value="1280x800">1280 × 800  (16:10)</option>
+      <option value="1280x1024">1280 × 1024  (5:4)</option>
+      <option value="1440x900">1440 × 900  (16:10)</option>
+      <option value="1920x1080">1920 × 1080  (16:9 FHD)</option>
+      <option value="1920x1200">1920 × 1200  (16:10)</option>
+      <option value="2560x1440">2560 × 1440  (16:9 QHD)</option>
+      <option value="2560x1600">2560 × 1600  (16:10)</option>
+      <option value="3840x2160">3840 × 2160  (16:9 4K)</option>
+      <option value="4096x2160">4096 × 2160  (DCI 4K)</option>
+      <option value="1080x1920">1080 × 1920  (portrait FHD)</option>
+    </select>
+  </div>
+
+  <!-- ── Source dimensions ── -->
+  <div class="row-label">Source</div>
+  <div id="input-row" class="dimension-row">
+    <input type="text" id="inputX" value="1920"
+           placeholder="W"
+           oninput="updateSource(event)"
+           onkeydown="keyboard(event)"
+           onfocus="selectAll(event)">
+    <span class="separator">×</span>
+    <input type="text" id="inputY" value="1080"
+           placeholder="H"
+           oninput="updateSource(event)"
+           onkeydown="keyboard(event)"
+           onfocus="selectAll(event)">
+    <button id="swap-btn" title="Swap width ↔ height" onclick="swap()">⇄</button>
+  </div>
+
+  <!-- ── Ratio / aspect display ── -->
+  <div id="ratio-row">
+    <span id="ratio" class="muted-value">16 × 9</span>
+    <button id="lock-btn" title="Lock aspect ratio" onclick="toggleLock()">
+      <span id="lock-icon">🔓</span>
+    </button>
+    <span id="aspect" class="muted-value">1.778</span>
+  </div>
+
+  <!-- ── Output dimensions ── -->
+  <div class="row-label">Output</div>
+  <div id="output-row" class="dimension-row">
+    <input type="text" id="outputX" value="1280"
+           placeholder="W"
+           oninput="updateX(event)"
+           onkeydown="keyboard(event)"
+           onfocus="selectAll(event)">
+    <span class="separator">×</span>
+    <input type="text" id="outputY" value="720"
+           placeholder="H"
+           oninput="updateY(event)"
+           onkeydown="keyboard(event)"
+           onfocus="selectAll(event)">
+  </div>
+
+  <!-- ── Scale slider + text ── -->
+  <div id="scale-row">
+    <input type="range" id="slider" min="0" max="200" step="0.01" value="66.66"
+           oninput="updateSlider(event)">
+    <input type="text" id="scale" value="66.67"
+           oninput="updateScale(event)"
+           onkeydown="keyboard(event)"
+           onfocus="selectAll(event)">
+    <span class="pct-sign">%</span>
+  </div>
+
+  <!-- ── Step limit ── -->
+  <div id="limit-row">
+    <label class="muted-label">Step</label>
+    <select id="limits" onchange="updateLimit(event)">
+      <option value="none">none</option>
+      <option value="2">2 px</option>
+      <option value="4">4 px</option>
+      <option value="8">8 px</option>
+      <option value="10" selected>10 px</option>
+      <option value="16">16 px</option>
+      <option value="32">32 px</option>
+      <option value="64">64 px</option>
+    </select>
+
+    <!-- Auto-generate list button -->
+    <button id="auto-btn" title="List all scaled sizes" onclick="auto()">≡ List</button>
+
+    <!-- Info / settings button -->
+    <button id="info-btn" title="Settings & info" onclick="showBack()">ⓘ</button>
+  </div>
+
+</div><!-- /front -->
+
+
+<!-- ════════════════════════════════════════════
+     LIST PANEL  –  auto-generated ratio table
+     ════════════════════════════════════════════ -->
+<div id="list-panel" class="hidden">
+  <div id="list-header">
+    <span>Scaled Sizes</span>
+    <button onclick="showFront()">✕ Close</button>
+  </div>
+  <div id="list-scroll">
+    <table id="ratio-table">
+      <thead>
+        <tr><th>Scale %</th><th>Width × Height</th></tr>
+      </thead>
+      <tbody id="ratio-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════
+     BACK FACE  –  info / settings
+     ════════════════════════════════════════════ -->
+<div id="back" class="hidden">
+  <div id="back-header">
+    <span>Ratio</span>
+    <button onclick="showFront()">Done</button>
+  </div>
+  <div id="back-body">
+    <p class="back-section-title">About</p>
+    <p class="back-text">
+      Enter a source width and height. Ratio calculates the aspect ratio,
+      then scales your output to any percentage while keeping dimensions
+      snapped to your chosen step size.
+    </p>
+    <p class="back-section-title">Usage</p>
+    <p class="back-text">
+      • Type directly in any field — output updates automatically.<br>
+      • Arrow keys nudge values ±1 (Shift ±10).<br>
+      • Click <strong>⇄</strong> to swap width and height.<br>
+      • Click <strong>🔓</strong> to lock the aspect ratio while typing.<br>
+      • Click <strong>≡ List</strong> to see every valid scaled size.<br>
+      • Drag the slider or type a percentage to scale freely.
+    </p>
+    <p class="back-section-title">Step size</p>
+    <p class="back-text">
+      Constrains output to multiples of the chosen pixel step so scaled
+      dimensions are always whole numbers your renderer can use.
+      "none" shows unrounded decimals.
+    </p>
+    <a id="iaian7-link" href="#" onclick="openWebsite(); return false;">
+      iaian7.com – original widget
+    </a>
+  </div>
+</div>
+
+
+<script src="app.js"></script>
+</body>
+</html>
