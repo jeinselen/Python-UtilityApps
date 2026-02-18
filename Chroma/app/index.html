@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Chroma</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FRONT FACE
+     ══════════════════════════════════════════════════════════════ -->
+<div id="front">
+
+  <!-- ── Colour library list ───────────────────────────────────── -->
+  <div id="library-wrap">
+    <ul id="library-list"></ul>
+  </div>
+
+  <!-- ── bottom input area (two sub-panels: values / names) ────── -->
+  <div id="input-area">
+
+    <!-- SUB-PANEL: values (HSV + RGB + HEX + swatch) -->
+    <div id="panel-values" class="sub-panel">
+
+      <!-- HSV row -->
+      <div class="input-box" id="box-hsv">
+        <span class="box-tag" id="tag-hsv" onclick="copyHSV(event)" title="Copy HSV">HSV</span>
+        <input type="text" id="H" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+        <input type="text" id="S" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+        <input type="text" id="V" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+      </div>
+
+      <!-- RGB row -->
+      <div class="input-box" id="box-rgb">
+        <span class="box-tag" id="tag-rgb" onclick="copyRGB(event)" title="Copy RGB">RGB</span>
+        <input type="text" id="R" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+        <input type="text" id="G" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+        <input type="text" id="B" maxlength="5" autocomplete="off"
+               onkeyup="updateInput(event)" onfocus="selectAll(event)">
+      </div>
+
+      <!-- HEX + swatch row -->
+      <div id="hex-swatch-row">
+        <div class="input-box" id="box-hex">
+          <span class="box-tag" id="tag-hex" onclick="copyHEX(event)" title="Copy HEX">HEX</span>
+          <input type="text" id="X" maxlength="7" autocomplete="off"
+                 onkeyup="updateInput(event)" onfocus="selectAll(event)">
+        </div>
+        <div id="swatch" title="Save to library" onclick="showNames()"></div>
+      </div>
+
+    </div><!-- /panel-values -->
+
+    <!-- SUB-PANEL: save-to-library (group + name inputs) -->
+    <div id="panel-names" class="sub-panel hidden">
+
+      <div id="names-row">
+        <div class="input-box name-box">
+          <input type="text" id="groupTitle" maxlength="32" placeholder="group"
+                 autocomplete="off"
+                 onkeyup="updateGroup()" onfocus="selectAll(event)">
+        </div>
+        <div class="input-box name-box">
+          <input type="text" id="nameTitle"  maxlength="32" placeholder="name"
+                 autocomplete="off"
+                 onkeyup="updateName()" onfocus="selectAll(event)">
+        </div>
+      </div>
+
+      <div id="names-actions">
+        <div id="swatch-save" title="Cancel"></div>
+        <button id="btn-cancel-save" class="action-btn" onclick="showValues()">Cancel</button>
+        <button id="btn-save"        class="action-btn primary" onclick="addLibrary()">Save colour</button>
+      </div>
+
+    </div><!-- /panel-names -->
+
+    <!-- SUB-PANEL: alert (validation error) -->
+    <div id="panel-alert" class="sub-panel hidden">
+      <div id="alert-text">Group and name must contain at least one letter.</div>
+      <button class="action-btn" onclick="showValues()">OK</button>
+    </div>
+
+  </div><!-- /input-area -->
+
+  <!-- ── Settings button ───────────────────────────────────────── -->
+  <div id="front-bar">
+    <button id="settings-btn" onclick="showBack()">⚙ Settings</button>
+  </div>
+
+</div><!-- /front -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     BACK FACE – Settings
+     ══════════════════════════════════════════════════════════════ -->
+<div id="back" class="hidden">
+
+  <div id="back-header">
+    <span>Chroma — Settings</span>
+    <button onclick="showFront()">Done</button>
+  </div>
+
+  <div id="back-body">
+
+    <!-- Sort & Show -->
+    <div class="settings-grid">
+      <div class="setting-row">
+        <label class="setting-label">Sort library</label>
+        <select id="sort" onchange="updateSort()">
+          <option value="0">Name</option>
+          <option value="1">Hue</option>
+          <option value="2">Saturation</option>
+          <option value="3">Value</option>
+          <option value="4">Date added</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label class="setting-label">Show in list</label>
+        <select id="show" onchange="updateShow()">
+          <option value="0">HSV + RGB + HEX</option>
+          <option value="1">Name + HSV + HEX</option>
+          <option value="2">Name + RGB + HEX</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-grid">
+      <!-- HSV format -->
+      <div class="setting-row">
+        <label class="setting-label">HSV format</label>
+        <select id="formatHSV" onchange="updateFormatHSV()">
+          <option value="0">0–360° / 0–100%</option>
+          <option value="1">0–255</option>
+          <option value="2">0–100%</option>
+          <option value="3">0.00–1.00</option>
+        </select>
+      </div>
+      <!-- RGB format -->
+      <div class="setting-row">
+        <label class="setting-label">RGB format</label>
+        <select id="formatRGB" onchange="updateFormatRGB()">
+          <option value="0">0–255</option>
+          <option value="1">0–100%</option>
+          <option value="2">0.00–1.00</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Clipboard precision -->
+    <div class="setting-row">
+      <label class="setting-label">Clipboard decimal places</label>
+      <select id="accuracy" onchange="updateAccuracy()">
+        <option value="0">2 decimal places</option>
+        <option value="1">4 decimal places</option>
+        <option value="2">6 decimal places</option>
+      </select>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Library data exchange -->
+    <div class="setting-row">
+      <label class="setting-label">Colour library</label>
+    </div>
+
+    <!-- panel-library-menu -->
+    <div id="panel-lib-menu" class="lib-panel">
+      <p class="lib-hint">Export copies the library as CSV text to the clipboard.<br>
+         Import reads CSV text from the clipboard.</p>
+      <div class="lib-btn-row">
+        <button class="action-btn" onclick="exportLibrary()">Export to clipboard</button>
+        <button class="action-btn" onclick="importLibrary()">Import from clipboard</button>
+      </div>
+    </div>
+
+    <!-- panel-library-export-ok -->
+    <div id="panel-lib-export-ok" class="lib-panel hidden">
+      <p class="lib-hint lib-ok">Library copied to clipboard.</p>
+      <button class="action-btn" onclick="showLibraryMenu()">Back</button>
+    </div>
+
+    <!-- panel-library-import-confirm -->
+    <div id="panel-lib-import-confirm" class="lib-panel hidden">
+      <p class="lib-hint" id="lib-import-count"></p>
+      <div class="lib-btn-row">
+        <button class="action-btn" onclick="importLibraryReplace()">Replace library</button>
+        <button class="action-btn" onclick="importLibraryAdd()">Add to library</button>
+        <button class="action-btn" onclick="importLibraryCancel()">Cancel</button>
+      </div>
+    </div>
+
+    <!-- panel-library-import-fail -->
+    <div id="panel-lib-import-fail" class="lib-panel hidden">
+      <p class="lib-hint lib-fail">Clipboard does not contain valid Chroma CSV data.</p>
+      <button class="action-btn" onclick="showLibraryMenu()">Back</button>
+    </div>
+
+    <!-- panel-library-import-success -->
+    <div id="panel-lib-import-success" class="lib-panel hidden">
+      <p class="lib-hint lib-ok">Library imported.</p>
+      <button class="action-btn" onclick="showLibraryMenu()">Back</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="setting-row about-row">
+      <a href="#" onclick="openWebsite(); return false;" id="iaian7-link">
+        iaian7.com – original widget
+      </a>
+    </div>
+
+  </div><!-- /back-body -->
+</div><!-- /back -->
+
+
+<script src="app.js"></script>
+</body>
+</html>
