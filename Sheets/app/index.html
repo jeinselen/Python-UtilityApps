@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sheets</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FRONT FACE
+     ══════════════════════════════════════════════════════════════ -->
+<div id="front">
+
+  <!-- ── Mode selector ─────────────────────────────────────────── -->
+  <div id="mode-row">
+    <label class="field-label">Mode</label>
+    <select id="type" onchange="updateType()">
+      <option value="0">Auto</option>
+      <option value="1">Horizontal strip</option>
+      <option value="2">Vertical strip</option>
+      <option value="3">Fixed size</option>
+      <option value="4">Fixed tile</option>
+      <option value="5">Sprite sheet</option>
+      <option value="6">Contact sheet</option>
+    </select>
+  </div>
+
+  <!-- ── Size + Tile inputs ────────────────────────────────────── -->
+  <div id="params-row">
+    <div class="param-box" id="size-box">
+      <label class="param-label">Cell size</label>
+      <input type="text" id="size" value="128x128"
+             placeholder="128x128"
+             oninput="updateSize()"
+             onfocus="selectAll(event)">
+    </div>
+    <div class="param-box" id="tile-box">
+      <label class="param-label">Tile grid</label>
+      <input type="text" id="tile" value="4x4"
+             placeholder="4x4"
+             oninput="updateTile()"
+             onfocus="selectAll(event)">
+    </div>
+  </div>
+
+  <!-- ── Drop zone ─────────────────────────────────────────────── -->
+  <div id="drop-zone"
+       ondrop="dragDrop(event)"
+       ondragover="dragOver(event)"
+       ondragenter="dragEnter(event)"
+       ondragleave="dragLeave(event)">
+    <div id="drop-icon">⬇</div>
+    <div id="drop-label">Drop images here</div>
+    <div id="drop-detail">PNG, JPG, TIF, PSD…</div>
+  </div>
+
+  <!-- ── Bottom bar ────────────────────────────────────────────── -->
+  <div id="front-bar">
+    <button id="settings-btn" onclick="showBack()" title="Settings">⚙ Settings</button>
+  </div>
+
+</div><!-- /front -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     SUCCESS PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="success-panel" class="state-panel hidden">
+  <div class="state-icon success-icon">✓</div>
+  <div id="success-text" class="state-title"></div>
+  <div id="success-details" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Done</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     FAIL PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="fail-panel" class="state-panel hidden">
+  <div class="state-icon fail-icon">✕</div>
+  <div id="fail-text" class="state-title"></div>
+  <div id="fail-detail" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Try Again</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     WRONG TYPE PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="wrong-panel" class="state-panel hidden">
+  <div class="state-icon wrong-icon">⚠</div>
+  <div id="wrong-text" class="state-title">Wrong file type</div>
+  <div id="wrong-detail" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Try Again</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     PROCESSING PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="processing-panel" class="state-panel hidden">
+  <div class="spinner"></div>
+  <div class="state-title">Processing…</div>
+  <div id="processing-detail" class="state-detail"></div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     BACK FACE  –  Settings
+     ══════════════════════════════════════════════════════════════ -->
+<div id="back" class="hidden">
+
+  <div id="back-header">
+    <span>Sheets — Settings</span>
+    <button onclick="showFront()">Done</button>
+  </div>
+
+  <div id="back-body">
+
+    <!-- ImageMagick path -->
+    <div class="setting-row">
+      <label class="setting-label">ImageMagick path</label>
+      <div class="setting-input-row">
+        <input type="text" id="loc" value="/opt/homebrew/bin/"
+               oninput="updateLoc()"
+               onfocus="selectAll(event)"
+               placeholder="/opt/homebrew/bin/">
+        <button id="check-btn" onclick="checkIM()" title="Verify path">Check</button>
+      </div>
+      <div id="im-status" class="setting-hint"></div>
+    </div>
+
+    <!-- Scale filter -->
+    <div class="setting-row">
+      <label class="setting-label">Scale filter</label>
+      <select id="scale" onchange="updateScale()">
+        <option value="0">Point (nearest)</option>
+        <option value="1">Box</option>
+        <option value="2">Cubic</option>
+        <option value="3" selected>Quadratic</option>
+        <option value="4">Gaussian</option>
+        <option value="5">Mitchell</option>
+        <option value="6">Catrom</option>
+        <option value="7">Lanczos</option>
+        <option value="8">None (no filter)</option>
+      </select>
+    </div>
+
+    <!-- Output channels -->
+    <div class="setting-row">
+      <label class="setting-label">Output</label>
+      <select id="output" onchange="updateOutput()">
+        <option value="0">RGBA (transparency preserved)</option>
+        <option value="1">RGB (alpha removed)</option>
+        <option value="2">Alpha channel only</option>
+        <option value="3">All three files</option>
+      </select>
+    </div>
+
+    <!-- File naming -->
+    <div class="setting-row">
+      <label class="setting-label">Sprite sheet name</label>
+      <input type="text" id="nameSprite" value="Sheet-%d"
+             oninput="updateNameSprite()"
+             onfocus="selectAll(event)"
+             placeholder="Sheet-%d">
+      <div class="setting-hint">%d = auto-numbered suffix</div>
+    </div>
+
+    <div class="setting-row">
+      <label class="setting-label">Contact sheet name</label>
+      <input type="text" id="nameFile" value="Files-"
+             oninput="updateNameFile()"
+             onfocus="selectAll(event)"
+             placeholder="Files-">
+    </div>
+
+    <!-- About -->
+    <div class="setting-row about-row">
+      <a href="#" onclick="openWebsite(); return false;" id="iaian7-link">
+        iaian7.com – original widget
+      </a>
+    </div>
+
+  </div><!-- /back-body -->
+</div><!-- /back -->
+
+
+<script src="app.js"></script>
+</body>
+</html>
