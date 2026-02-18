@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Alchemist</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FRONT FACE
+     ══════════════════════════════════════════════════════════════ -->
+<div id="front">
+
+  <!-- ── Mode selector ─────────────────────────────────────────── -->
+  <div id="mode-row">
+    <label class="field-label">Format</label>
+    <select id="type" onchange="updateType()">
+      <option value="0">ProRes 422  (.mov)</option>
+      <option value="1">HDV 1080p  (.mov)</option>
+      <option value="2">HDV 720p   (.mov)</option>
+      <option value="3">AIC        (.mov)</option>
+      <option value="4">HTML5 — MP4 + OGG + WebM  720p / 540p</option>
+      <option value="5">Desktop — MP4 + WMV  720p</option>
+      <option value="6">Mobile — MP4  480p / 360p</option>
+    </select>
+  </div>
+
+  <!-- ── Mode description ──────────────────────────────────────── -->
+  <div id="feedback"></div>
+
+  <!-- ── Drop zone ─────────────────────────────────────────────── -->
+  <div id="drop-zone"
+       ondrop="dragDrop(event)"
+       ondragover="dragOver(event)"
+       ondragenter="dragEnter(event)"
+       ondragleave="dragLeave(event)">
+    <div id="drop-icon">⬇</div>
+    <div id="drop-label">Drop video files here</div>
+    <div id="drop-detail">MOV, MP4, AVI, MKV…</div>
+  </div>
+
+  <!-- ── Bottom bar ────────────────────────────────────────────── -->
+  <div id="front-bar">
+    <button id="settings-btn" onclick="showBack()" title="Settings">⚙ Settings</button>
+  </div>
+
+</div><!-- /front -->
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     STARTED PANEL  –  encoding in progress
+     ══════════════════════════════════════════════════════════════ -->
+<div id="started-panel" class="state-panel hidden">
+  <div class="spinner"></div>
+  <div id="started-text"   class="state-title"></div>
+  <div id="started-detail" class="state-detail"></div>
+  <div id="started-sub"    class="state-sub">Encoding continues in the background.</div>
+  <button class="state-btn" onclick="showFront()">New Job</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     SUCCESS PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="success-panel" class="state-panel hidden">
+  <div class="state-icon success-icon">✓</div>
+  <div id="success-text"   class="state-title"></div>
+  <div id="success-detail" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Done</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     FAIL PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="fail-panel" class="state-panel hidden">
+  <div class="state-icon fail-icon">✕</div>
+  <div id="fail-text"   class="state-title"></div>
+  <div id="fail-detail" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Try Again</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     WRONG TYPE PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="wrong-panel" class="state-panel hidden">
+  <div class="state-icon wrong-icon">⚠</div>
+  <div id="wrong-text"   class="state-title">Wrong file type</div>
+  <div id="wrong-detail" class="state-detail"></div>
+  <button class="state-btn" onclick="showFront()">Try Again</button>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════
+     BACK FACE – Settings
+     ══════════════════════════════════════════════════════════════ -->
+<div id="back" class="hidden">
+
+  <div id="back-header">
+    <span>Alchemist — Settings</span>
+    <button onclick="showFront()">Done</button>
+  </div>
+
+  <div id="back-body">
+
+    <!-- qt_export path (legacy QuickTime tools) -->
+    <div class="setting-row">
+      <label class="setting-label">qt_export path  <span class="setting-badge">legacy ProRes/HDV/AIC</span></label>
+      <div class="setting-input-row">
+        <input type="text" id="location" value="/opt/local/bin/"
+               oninput="updateLocation()"
+               onfocus="selectAll(event)"
+               placeholder="/opt/local/bin/">
+        <button class="check-btn" onclick="checkTool('qt_export','qt-status')">Check</button>
+      </div>
+      <div id="qt-status" class="setting-hint"></div>
+    </div>
+
+    <!-- FFmpeg path -->
+    <div class="setting-row">
+      <label class="setting-label">FFmpeg path  <span class="setting-badge">all modern modes</span></label>
+      <div class="setting-input-row">
+        <input type="text" id="location2" value="/opt/homebrew/bin/"
+               oninput="updateLocation2()"
+               onfocus="selectAll(event)"
+               placeholder="/opt/homebrew/bin/">
+        <button class="check-btn" onclick="checkTool('ffmpeg','ff-status')">Check</button>
+      </div>
+      <div id="ff-status" class="setting-hint"></div>
+    </div>
+
+    <!-- ffmpeg2theora path -->
+    <div class="setting-row">
+      <label class="setting-label">ffmpeg2theora path  <span class="setting-badge">HTML5 OGG mode</span></label>
+      <div class="setting-input-row">
+        <input type="text" id="location3" value="/opt/homebrew/bin/"
+               oninput="updateLocation3()"
+               onfocus="selectAll(event)"
+               placeholder="/opt/homebrew/bin/">
+        <button class="check-btn" onclick="checkTool('ffmpeg2theora','ft-status')">Check</button>
+      </div>
+      <div id="ft-status" class="setting-hint"></div>
+    </div>
+
+    <!-- Rename settings (hidden in original, kept for completeness) -->
+    <details id="rename-details">
+      <summary class="setting-label">Rename settings (advanced)</summary>
+      <div id="rename-section">
+
+        <div class="setting-row">
+          <label class="setting-label">Word spacer</label>
+          <input type="text" id="spacer" value="_" maxlength="5"
+                 oninput="updateSpacer()"
+                 onfocus="selectAll(event)">
+        </div>
+
+        <div class="setting-row">
+          <label class="setting-label">Date spacer</label>
+          <input type="text" id="dateSpacer" value="-" maxlength="5"
+                 oninput="updateDateSpacer()"
+                 onfocus="selectAll(event)">
+          <div id="dateReverseFeedback" class="setting-hint"></div>
+        </div>
+
+        <div class="setting-row">
+          <label class="check-label">
+            <input type="checkbox" id="dateReverseBox" onchange="updateDateReverseBox()">
+            <span>ISO date order (yyyy-mm-dd)</span>
+          </label>
+        </div>
+
+        <div class="setting-row">
+          <label class="check-label">
+            <input type="checkbox" id="preBox" onchange="updatePreBox()">
+            <span>Prefix</span>
+          </label>
+          <input type="text" id="prefix" value="prefix" maxlength="30"
+                 oninput="updatePrefix()"
+                 onfocus="selectAll(event)">
+        </div>
+
+        <div class="setting-row">
+          <label class="check-label">
+            <input type="checkbox" id="sufBox" onchange="updateSufBox()">
+            <span>Suffix</span>
+          </label>
+          <input type="text" id="suffix" value="suffix" maxlength="30"
+                 oninput="updateSuffix()"
+                 onfocus="selectAll(event)">
+        </div>
+
+        <div class="setting-row">
+          <label class="check-label">
+            <input type="checkbox" id="dateBox" onchange="updateDateBox()">
+            <span>Prepend creation date</span>
+          </label>
+        </div>
+
+      </div>
+    </details>
+
+    <div class="setting-row about-row">
+      <a href="#" onclick="openWebsite(); return false;" id="iaian7-link">
+        iaian7.com – original widget
+      </a>
+    </div>
+
+  </div><!-- /back-body -->
+</div><!-- /back -->
+
+
+<script src="app.js"></script>
+</body>
+</html>
